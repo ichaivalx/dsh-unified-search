@@ -1,0 +1,16 @@
+node_modules/
+.build/
+releases/
+
+# Local credentials, settings and diagnostics are not project sources.
+.env
+.env.*
+!.env.example
+.credentials*
+.npmrc
+settings.yaml
+settings.local.*
+*.log
+*.bak
+.DS_Store
+Thumbs.db

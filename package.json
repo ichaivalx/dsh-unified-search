@@ -1,0 +1,70 @@
+{
+  "name": "@ichaival/dsh-unified-search",
+  "version": "1.1.2",
+  "description": "统一配置 Tavily、Exa 和 Firecrawl 的搜索、网页正文读取与 API 密钥。",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ichaivalx/dsh-unified-search.git"
+  },
+  "homepage": "https://github.com/ichaivalx/dsh-unified-search#readme",
+  "bugs": {
+    "url": "https://github.com/ichaivalx/dsh-unified-search/issues"
+  },
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./config": "./src/config.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "lib/client.js",
+    "lib/client.js.map",
+    "cordis.patch.yml",
+    "settings.example.yaml",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": ["@deepseek-ai/dsh-client-ui-renderer", "@deepseek-ai/dsh-client-locale", "@deepseek-ai/dsh-client-ui-settings", "@deepseek-ai/dsh-api-remotes", "@deepseek-ai/dsh-client-ui-plugin-manager"]
+    },
+    "bundle": {
+      "patch": "cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build-client.js",
+    "test": "node --import ./test/runtime-loader.js --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/dsh-credentials": "*",
+    "@deepseek-ai/dsh-tools": "*",
+    "@deepseek-ai/schemastery": "*"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
+    },
+    "@deepseek-ai/schemastery": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-credentials": {
+      "optional": true
+    }
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}
