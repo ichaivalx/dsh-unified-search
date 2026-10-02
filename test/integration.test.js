@@ -4,17 +4,11 @@ import { Context, Service } from '@deepseek-ai/cordis'
 import { createScope, bindScopeParent, scopeTarget } from '@deepseek-ai/dsh-scope'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import Tools, { defineTool } from '@deepseek-ai/dsh-tools'
-import { SettingsProvider } from '@deepseek-ai/dsh-settings'
 import { CredentialProvider } from '@deepseek-ai/dsh-credentials'
 import { PtcRuntime } from '@deepseek-ai/dsh-ptc-runtime'
+import { updateVolatile } from '@deepseek-ai/cosmokit'
 import * as plugin from '../src/index.js'
 
-class MemorySettings extends SettingsProvider {
-  constructor(ctx) { super(ctx); this.doc = {} }
-  get writable() { return true }
-  async load() { return this.doc }
-  async persist(ns, section) { this.doc[ns] = section }
-}
 class Credentials extends CredentialProvider {
   async resolve(ref) { return { value: `mock-${ref}`, source: 'test' } }
 }
@@ -42,7 +36,6 @@ async function boot(mode = 'native') {
   const ctx = new Context()
   await ctx.plugin(SystemPrompt, {})
   await ctx.plugin(Tools, { mode })
-  await ctx.plugin(MemorySettings)
   await ctx.plugin(Credentials)
   await ctx.plugin(Agents)
   if (mode !== 'native') await ctx.plugin(Runtime)
@@ -52,6 +45,21 @@ async function boot(mode = 'native') {
   return { ctx, preset }
 }
 const names = (ctx, agent) => ctx.tools.schemas(agent).map(tool => tool.name)
+
+test('live Config validates budgets and duplicate references before accepting updates', () => {
+  for (const input of [
+    { providers: { tavily: { searchTimeoutMs: 0 } } },
+    { providers: { tavily: { keys: [{ ref: 'DUP' }, { ref: 'DUP' }] } } },
+    { providers: { tavily: { extractTimeoutSeconds: NaN } } },
+  ]) {
+    let rejected = false
+    try {
+      const result = plugin.Config['~standard'].validate(input)
+      rejected = Boolean(result.issues)
+    } catch { rejected = true }
+    assert.equal(rejected, true)
+  }
+})
 
 test('real DSH scope shadow: schemas, native execution, prompt, children, minimal and unload', async t => {
   const { ctx, preset } = await boot()
@@ -84,12 +92,12 @@ test('real DSH scope shadow: schemas, native execution, prompt, children, minima
     assert.match(response.content[0].text, /Provider: tavily/)
   }
   assert.deepEqual(names(ctx, minimal.agent), [])
-  await ctx.settings.update('unified-search', { providers: { tavily: { searchDepth: 'basic' } } })
+  updateVolatile(fiber.config, plugin.Config({ providers: { tavily: { searchDepth: 'basic' } } }))
   await ctx.tools.execute({ agent: root.agent, name: 'web_search', arguments: { query: 'new settings' }, callId: 'after-setting', signal: new AbortController().signal })
   assert.equal(requests.at(-1).search_depth, 'basic')
-  await ctx.settings.update('unified-search', { providers: { tavily: { maxResults: 2, snippetMaxChars: 3, fetchMaxChars: 4 } } })
-  await ctx.settings.update('unified-search', { providers: { tavily: { maxResults: null, snippetMaxChars: null, fetchMaxChars: null } } })
-  const saved = ctx.settings.describe().find(item => item.ns === 'unified-search').value.providers.tavily
+  updateVolatile(fiber.config, plugin.Config({ providers: { tavily: { maxResults: 2, snippetMaxChars: 3, fetchMaxChars: 4 } } }))
+  updateVolatile(fiber.config, plugin.Config({ providers: { tavily: { maxResults: null, snippetMaxChars: null, fetchMaxChars: null } } }))
+  const saved = fiber.config.get().providers.tavily
   assert.equal(saved.maxResults, null)
   assert.equal(saved.snippetMaxChars, null)
   assert.equal(saved.fetchMaxChars, null)

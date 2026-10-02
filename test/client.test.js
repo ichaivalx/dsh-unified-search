@@ -27,13 +27,13 @@ test('defaults, settings validation and live settings snapshots', async () => {
   validateSettings(empty)
   assert.equal(empty.providers.tavily.maxResults, null)
   for (const field of ['snippetMaxChars', 'fetchMaxChars']) {
-    assert.throws(() => validateSettings(SettingsSchema({ providers: { tavily: { [field]: 0 } } })), /positive safe integer/)
+    assert.throws(() => SettingsSchema({ providers: { tavily: { [field]: 0 } } }))
   }
   assert.equal(defaultConfig.providers.exa.searchType, 'deep-reasoning')
   validateSettings(SettingsSchema({ providers: { tavily: { maxResults: 0 } } }))
   assert.equal(buildRequest('search', { query: 'x', maxResults: 0 }, 'tavily', defaultConfig.providers.tavily).body.max_results, 0)
-  assert.throws(() => validateSettings(SettingsSchema({ providers: { tavily: { maxResults: 21 } } })), /API limit/)
-  assert.throws(() => validateSettings(SettingsSchema({ providers: { exa: { keys: [{ ref: 'bad-ref' }] } } })), /credential ref/)
+  assert.throws(() => SettingsSchema({ providers: { tavily: { maxResults: 21 } } }))
+  assert.throws(() => SettingsSchema({ providers: { exa: { keys: [{ ref: 'bad-ref' }] } } }))
   const s = setup(() => ok(result))
   await s.client.run('search', { query: 'first' })
   s.config.providers.tavily.searchDepth = 'basic'

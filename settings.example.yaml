@@ -1,58 +1,59 @@
-# 将 unified-search 段合并到 DSH 的 settings.yaml；这是完整默认配置。
+# 将此条目的 config 合并到 DSH 的 profiles/desktop/cordis.patch.yml；这是完整默认配置。
 # 密钥值存入 DSH 凭据库，只在此填写引用名，禁止填写实际密钥。
 # 保存后下一次请求使用新配置；进行中的请求保留开始时的配置。
-unified-search:
-  defaultSearchProvider: tavily
-  defaultFetchProvider: firecrawl
-  providers:
-    tavily:
-      keys:
-        - ref: TAVILY_API_KEY
-          enabled: true
-        # - ref: TAVILY_API_KEY_2
-        #   enabled: true
-      # round-robin：并发请求轮流选择起始key；failover：每次从第一把开始。
-      keyStrategy: round-robin
-      # 客户端总请求期限，含凭据解析、切key和响应正文读取，单位毫秒。
-      searchTimeoutMs: 90000
-      fetchTimeoutMs: 90000
-      # 留空/省略/null：不向上游传结果数量，也不裁剪返回列表。
-      # 明确填写时作为默认结果数；模型maxResults可覆盖。Tavily范围0..20。
-      maxResults: null
-      # 留空/省略/null：本插件不裁剪每条摘要/单页正文。
-      # 明确填写正整数才启用字符上限，截断会标注；DSH仍可能做spill或压缩。
-      snippetMaxChars: null
-      fetchMaxChars: null
-      searchDepth: advanced # basic / advanced / fast / ultra-fast
-      topic: general # general / news / finance
-      extractDepth: advanced # basic / advanced
-      extractTimeoutSeconds: 60 # Tavily API范围1..60秒
-    exa:
-      keys:
-        - ref: EXA_API_KEY
-          enabled: true
-      keyStrategy: round-robin
-      searchTimeoutMs: 180000 # deep-reasoning允许更长总期限，可自行调整
-      fetchTimeoutMs: 90000
-      maxResults: null # 留空不传；明确填写时Exa API范围1..100
-      snippetMaxChars: null # 留空不做本地摘要截断
-      fetchMaxChars: null # 留空不做本地正文截断
-      # 仅 Search API；不是 Agent/Research 产品。
-      searchType: deep-reasoning # instant / fast / auto / deep-lite / deep / deep-reasoning
-      searchContent: highlights # highlights / text；只请求所选一种内容
-      maxAgeHours: 24 # 仅contents抓取：-1只用缓存，0新抓，1..720缓存最长期限
-    firecrawl:
-      keys:
-        - ref: FIRECRAWL_API_KEY
-          enabled: true
-      keyStrategy: round-robin
-      searchTimeoutMs: 90000
-      fetchTimeoutMs: 90000
-      maxResults: null # 留空不传；明确填写时Firecrawl API范围1..100
-      snippetMaxChars: null # 留空不做本地摘要截断
-      fetchMaxChars: null # 留空不做本地正文截断
-      # 服务端期限，单位毫秒；客户端期限通常应更长以留出网络传输时间。
-      searchApiTimeoutMs: 60000
-      scrapeApiTimeoutMs: 60000
-      highlights: true
-      onlyMainContent: true # 仅抓取正文区域；false可保留导航等外围内容
+- id: unified-search
+  config:
+    defaultSearchProvider: tavily
+    defaultFetchProvider: firecrawl
+    providers:
+      tavily:
+        keys:
+          - ref: TAVILY_API_KEY
+            enabled: true
+          # - ref: TAVILY_API_KEY_2
+          #   enabled: true
+        # round-robin：并发请求轮流选择起始key；failover：每次从第一把开始。
+        keyStrategy: round-robin
+        # 客户端总请求期限，含凭据解析、切key和响应正文读取，单位毫秒。
+        searchTimeoutMs: 90000
+        fetchTimeoutMs: 90000
+        # 留空/省略/null：不向上游传结果数量，也不裁剪返回列表。
+        # 明确填写时作为默认结果数；模型maxResults可覆盖。Tavily范围0..20。
+        maxResults: null
+        # 留空/省略/null：本插件不裁剪每条摘要/单页正文。
+        # 明确填写正整数才启用字符上限，截断会标注；DSH仍可能做spill或压缩。
+        snippetMaxChars: null
+        fetchMaxChars: null
+        searchDepth: advanced # basic / advanced / fast / ultra-fast
+        topic: general # general / news / finance
+        extractDepth: advanced # basic / advanced
+        extractTimeoutSeconds: 60 # Tavily API范围1..60秒
+      exa:
+        keys:
+          - ref: EXA_API_KEY
+            enabled: true
+        keyStrategy: round-robin
+        searchTimeoutMs: 180000 # deep-reasoning允许更长总期限，可自行调整
+        fetchTimeoutMs: 90000
+        maxResults: null # 留空不传；明确填写时Exa API范围1..100
+        snippetMaxChars: null # 留空不做本地摘要截断
+        fetchMaxChars: null # 留空不做本地正文截断
+        # 仅 Search API；不是 Agent/Research 产品。
+        searchType: deep-reasoning # instant / fast / auto / deep-lite / deep / deep-reasoning
+        searchContent: highlights # highlights / text；只请求所选一种内容
+        maxAgeHours: 24 # 仅contents抓取：-1只用缓存，0新抓，1..720缓存最长期限
+      firecrawl:
+        keys:
+          - ref: FIRECRAWL_API_KEY
+            enabled: true
+        keyStrategy: round-robin
+        searchTimeoutMs: 90000
+        fetchTimeoutMs: 90000
+        maxResults: null # 留空不传；明确填写时Firecrawl API范围1..100
+        snippetMaxChars: null # 留空不做本地摘要截断
+        fetchMaxChars: null # 留空不做本地正文截断
+        # 服务端期限，单位毫秒；客户端期限通常应更长以留出网络传输时间。
+        searchApiTimeoutMs: 60000
+        scrapeApiTimeoutMs: 60000
+        highlights: true
+        onlyMainContent: true # 仅抓取正文区域；false可保留导航等外围内容

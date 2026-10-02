@@ -26,7 +26,7 @@
 
 也可通过 YAML 配置，参见 [settings.example.yaml](./settings.example.yaml)。
 
-已在 DeepSeek Harness `0.1.6-alpha.2` 上验证。
+适配 DeepSeek Harness `0.2.0-rc.2`。
 
 ## 许可证
 

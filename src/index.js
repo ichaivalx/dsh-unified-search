@@ -4,8 +4,19 @@ import { UnifiedSearchClient } from './client.js'
 import { searchOutput, fetchOutput, renderSearch, renderFetch } from './output.js'
 
 export const name = 'unified-search'
-export const inject = ['agents', 'tools', 'systemPrompt', 'settings', 'credentials']
+export const inject = ['agents', 'tools', 'systemPrompt', 'credentials']
 export { SettingsSchema, defaultConfig } from './config.js'
+export const Config = SettingsSchema.volatile()
+// Keep the form schema serializable; Loader validates through Standard Schema.
+const standard = Config['~standard']
+Object.defineProperty(Config, '~standard', { value: {
+  ...standard,
+  validate(input) {
+    const result = standard.validate(input)
+    if (!result.issues) validateSettings(result.value.get())
+    return result
+  },
+} })
 
 const providerParameter = { type: 'string', enum: PROVIDERS, description: 'Optional search service; omit to use the configured default.' }
 export const searchParameters = {
@@ -49,9 +60,10 @@ export function createTool(operation, client) {
 }
 
 /** Replace only inherited web capabilities; minimal presets keep their empty surface. */
-export function apply(ctx) {
-  const settings = ctx.settings.register('unified-search', SettingsSchema, { validate: validateSettings })
-  const client = new UnifiedSearchClient({ getSettings: () => settings.get(), resolveCredential: ref => ctx.credentials.resolve(ref) })
+export function apply(ctx, config) {
+  validateSettings(config.get())
+  ctx.inject(['settings'], child => child.effect(() => child.settings.configure({ auto: false }, ctx.fiber)))
+  const client = new UnifiedSearchClient({ getSettings: () => config.get(), resolveCredential: ref => ctx.credentials.resolve(ref) })
   const owners = new Map()
   let stopping = false
   function track(agent, newlyCreated = false) {

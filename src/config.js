@@ -3,13 +3,15 @@ import { credentialRef } from '@deepseek-ai/dsh-credentials'
 
 export const PROVIDERS = ['tavily', 'exa', 'firecrawl']
 const enumOf = (values, fallback) => z.union(values).default(fallback)
-const optionalLimit = () => z.union([z.number(), z.const(null)]).default(null)
-const common = (ref, searchTimeoutMs) => ({
-  keys: z.array(z.object({ ref: z.string().required(), enabled: z.boolean().default(true) })).default([{ ref, enabled: true }]),
+const positiveInteger = () => z.number().min(1).max(Number.MAX_SAFE_INTEGER).step(1)
+const optionalLimit = (minimum = 1, maximum = Number.MAX_SAFE_INTEGER) => z.union([z.number().min(minimum).max(maximum).step(1), z.const(null)]).default(null)
+const keys = ref => z.array(z.object({ ref: z.string().pattern(/^[A-Za-z_][A-Za-z0-9_]*$/).required(), enabled: z.boolean().default(true) })).default([{ ref, enabled: true }])
+const common = (ref, searchTimeoutMs, minimum, maximum) => ({
+  keys: keys(ref),
   keyStrategy: enumOf(['round-robin', 'failover'], 'round-robin'),
-  searchTimeoutMs: z.number().default(searchTimeoutMs),
-  fetchTimeoutMs: z.number().default(90000),
-  maxResults: optionalLimit(),
+  searchTimeoutMs: positiveInteger().default(searchTimeoutMs),
+  fetchTimeoutMs: positiveInteger().default(90000),
+  maxResults: optionalLimit(minimum, maximum),
   snippetMaxChars: optionalLimit(),
   fetchMaxChars: optionalLimit(),
 })
@@ -20,22 +22,22 @@ export const SettingsSchema = z.object({
   defaultFetchProvider: enumOf(PROVIDERS, 'firecrawl'),
   providers: z.object({
     tavily: z.object({
-      ...common('TAVILY_API_KEY', 90000),
+      ...common('TAVILY_API_KEY', 90000, 0, 20),
       searchDepth: enumOf(['basic', 'advanced', 'fast', 'ultra-fast'], 'advanced'),
       topic: enumOf(['general', 'news', 'finance'], 'general'),
       extractDepth: enumOf(['basic', 'advanced'], 'advanced'),
-      extractTimeoutSeconds: z.number().default(60),
+      extractTimeoutSeconds: z.number().min(1).max(60).default(60),
     }).default({}),
     exa: z.object({
-      ...common('EXA_API_KEY', 180000),
+      ...common('EXA_API_KEY', 180000, 1, 100),
       searchType: enumOf(['instant', 'fast', 'auto', 'deep-lite', 'deep', 'deep-reasoning'], 'deep-reasoning'),
       searchContent: enumOf(['highlights', 'text'], 'highlights'),
-      maxAgeHours: z.number().default(24),
+      maxAgeHours: z.number().min(-1).max(720).step(1).default(24),
     }).default({}),
     firecrawl: z.object({
-      ...common('FIRECRAWL_API_KEY', 90000),
-      searchApiTimeoutMs: z.number().default(60000),
-      scrapeApiTimeoutMs: z.number().default(60000),
+      ...common('FIRECRAWL_API_KEY', 90000, 1, 100),
+      searchApiTimeoutMs: positiveInteger().default(60000),
+      scrapeApiTimeoutMs: positiveInteger().default(60000),
       highlights: z.boolean().default(true),
       onlyMainContent: z.boolean().default(true),
     }).default({}),

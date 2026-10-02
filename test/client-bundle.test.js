@@ -32,6 +32,6 @@ test('client artifact loads through the installed DSH module system with shared 
   assert.deepEqual(Object.keys(client).sort(), ['apply', 'inject'])
   assert.equal(typeof client.apply, 'function')
   assert.equal(client, await loader.import(id, '', {}))
-  assert.ok(client.inject.includes('settingsScope'))
+  assert.ok(client.inject.includes('configForms'))
   assert.ok(client.inject.includes('remote.credentials'))
 })

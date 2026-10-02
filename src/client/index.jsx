@@ -4,15 +4,15 @@ import { SettingsPage } from './Page.jsx'
 import { namespace, zh, en } from './locales.js'
 import css from './style.css'
 
-export const inject = ['slots', 'locale', 'remote', 'remote.settings', 'remote.credentials', 'settingsScope']
+export const inject = ['slots', 'locale', 'remote', 'remote.settings', 'remote.credentials', 'configForms']
 
 export function apply(ctx) {
-  const scope = ctx.settingsScope.bind({ namespace: 'unified-search' })
+  const scope = ctx.configForms.get('unified-search')
   const editor = new SearchSettingsEditor({
     scope,
     createStore: createSnapshotStore,
     mutate: (ops, revision) => ctx.remote.settings.mutate('unified-search', ops, revision),
-    acceptView: view => ctx.settingsScope.describe().acceptView(view),
+    acceptView: view => ctx.configForms.describe().acceptView(view),
     credentials: {
       describe: refs => ctx.remote.credentials.describe(refs),
       set: (ref, value) => ctx.remote.credentials.set(ref, value),
